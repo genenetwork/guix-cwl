@@ -14,9 +14,11 @@ GNU Guix.
 
 tbd
 
-** With GNU Guix
+** With GNU Guix channel
 
-Create or modify the =~/.config/guix/channels.scm= file so it includes
+On Ubuntu, Debian, Redhat etc., after installing the [[https://www.gnu.org/software/guix/download/][GNU Guix 0.16.0
+Binary]] and following the [[https://www.gnu.org/software/guix/manual/en/html_node/Binary-Installation.html][instructions]] to create a build user etc.,
+create or modify the =~/.config/guix/channels.scm= file so it includes
 
 #+BEGIN_SRC scheme
 (cons (channel
@@ -26,9 +28,21 @@ Create or modify the =~/.config/guix/channels.scm= file so it includes
       %default-channels)
 #+END_SRC
 
-Then run ~guix pull~ as usual. A =cwl= package is available:
+Then run ~guix pull~ as usual and a =cwltool= package is available:
 
-: guix package -A cwl
+: guix pull
+: guix package -A cwltool
+
+For more ready made binary substitutes you can try instead
+
+: guix pull --substitute-urls="https://berlin.guixsd.org http://guix.genenetwork.org https://mirror.hydra.gnu.org"
+
+** With GNU Guix GUIX_PACKAGE_PATH
+
+There is no magic in channels. I.e., you can opt for the GUIX_PACKAGE_PATH from a checked out
+GNU Guix repo. E.g.
+
+: env GUIX_PACKAGE_PATH=../../gnu/channels/guix-cwl/ ./pre-inst-env guix package -i cwltool -p ~/opt/cwl
 
 * Requirements
 
