@@ -1,0 +1,42 @@
+#+TITLE: guix-cwl
+#+OPTIONS: toc:nil num:nil
+
+This is a GNU Guix /channel/ for the Common Workflow Language which
+can be installed on any Linux distribution (Guix is distribution
+agnostic).
+
+We also provide a ready made Docker container so you can run without
+GNU Guix.
+
+* How to use
+
+** With Docker
+
+tbd
+
+** With GNU Guix
+
+Create or modify the =~/.config/guix/channels.scm= file so it includes
+
+#+BEGIN_SRC scheme
+(cons (channel
+        (name 'guix-cwl)
+        (url "https://github.com/pjotrp/guix-cwl.git")
+        (branch "master"))
+      %default-channels)
+#+END_SRC
+
+Then run ~guix pull~ as usual. A =cwl= package is available:
+
+: guix package -A cwl
+
+* Requirements
+
+  * Guix > 0.15 (for the "channels" feature)
+
+* Notice
+
+This channel exists because not all dependencies are ready to go into
+GNU Guix trunk. We ought to make CWL part of GNU Guix proper in time.
+
+Pjotr Prins
