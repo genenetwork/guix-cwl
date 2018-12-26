@@ -36,7 +36,7 @@
   #:use-module (srfi srfi-1))
 
 (define-public cwltool ; guix: needs work
-  (let ((commit "e12d36b6efbc5d4a6ff7b4fbfd7387bff8f72727"))
+  (let ((commit "15539fba76993f951af9eba913bea6d677c74005"))
   (package
     (name "cwltool")
     (version "1.0.20181012180214")
@@ -54,8 +54,10 @@
          (file-name (git-file-name name version))
         (sha256
           (base32
-            "1zhba1hfizrw3bxfmhpjds92pj79hyyv5k7sglw24z52kg1in67p"))))
+            "1qwfa82car7477sy0cb5bj4964w7zq7dcw2bdcls6c2i9qdp0586"))))
     (build-system python-build-system)
+    ; (inputs
+    ;  `(("python@3.6.5" ,python-3.6.5)))
     (propagated-inputs ; a lot of these are used for testing
      `(("git" ,git)
        ("node" ,node)
@@ -81,7 +83,7 @@
        ("python-schema-salad" ,python-schema-salad)
        ("python-html5lib" ,python-html5lib)
        ("python-rdflib-jsonld" ,python-rdflib-jsonld)
-       ("python-typing-extensions" ,python-typing-extensions)
+       ; ("python-typing-extensions" ,python-typing-extensions)
        ("python-scandir" ,python-scandir)
        ("python-psutil" ,python-psutil)
        ))
@@ -102,16 +104,22 @@
     (license license:asl2.0))))
 
 (define-public python-schema-salad
+  (let ((commit "eb85c3d49b99b7643e8a12248e2dc05504910c1e"))
   (package
     (name "python-schema-salad")
-    (version "3.0.20181129082112")
+    (version "3.0.20181206233650")
     (source
       (origin
-        (method url-fetch)
-        (uri (pypi-uri "schema-salad" version))
-        (sha256
-          (base32
-            "1xg70v82q053vz1sg8sc99alnkrm2kk05w6698vgmngl1767sk97"))))
+        ; (method url-fetch)
+        ; (uri (pypi-uri "schema-salad" version))
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/genenetwork/schema_salad.git")
+             (commit commit)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "174f224zzjr0nbjlq3ypciyfijnibasysrgjswvx8yhan2dizlhr"))))
     (build-system python-build-system)
     (arguments `(#:tests? #f)) ;; CWL includes no tests.
     (inputs
@@ -133,4 +141,4 @@
       "Schema Annotations for Linked Avro Data (SALAD)")
     (description
       "Schema Annotations for Linked Avro Data (SALAD)")
-    (license license:asl2.0)))
+    (license license:asl2.0))))

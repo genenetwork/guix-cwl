@@ -65,6 +65,10 @@ Now to run the tool you need to set the paths etc with
 : . ~/opt/cwl/etc/profile
 : cwltool --help
 
+renders
+
+: cwltool-1.0.20181012180214
+
 ** With GNU Guix GUIX_PACKAGE_PATH
 
 There is no magic in channels. I.e., you can opt for the GUIX_PACKAGE_PATH from a checked out
@@ -75,8 +79,9 @@ GNU Guix repo. E.g.
 * Notice
 
 This channel exists because not all dependencies are ready to go into
-GNU Guix trunk. Not least because they only build on Python 3.6. We
-ought to make CWL part of GNU Guix proper in time.
+GNU Guix trunk and both CWL and schema-salad still use the older
+typing_extensions. We ought to make CWL part of GNU Guix proper in
+time.
 
 Enjoy,
 

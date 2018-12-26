@@ -543,7 +543,8 @@ the older versions.")
   (build-system python-build-system)
   (propagated-inputs
     `(("python-version" ,python-version)
-      ("python-typing" ,python-typing)))
+                                        ; ("python-typing" ,python-typing)))
+      ))
   (home-page "http://www.mypy-lang.org/")
   (synopsis
     "Experimental type system extensions for programs checked with the mypy typechecker.")
