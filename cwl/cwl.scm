@@ -60,8 +60,9 @@
      `(("git" ,git)
        ("node" ,node)
        ("python-bagit" ,python-bagit)
+       ("python-cachecontrol" ,python-cachecontrol) ; requires 0.12
        ("python-arcp" ,python-arcp)
-       ("python-setuptools" ,python-setuptools)
+       ("python-setuptools-vtags" ,python-setuptools-vtags)
        ("python-dateutil" ,python-dateutil)
        ("python-pytest-cov" ,python-pytest-cov)
        ("python-prov" ,python-prov)
@@ -114,7 +115,8 @@
     (build-system python-build-system)
     (arguments `(#:tests? #f)) ;; CWL includes no tests.
     (inputs
-      `(("python-cython" ,python-cython)
+     `(("python-cachecontrol" ,python-cachecontrol) ; requires 0.12
+       ("python-cython" ,python-cython)
        ("python-setuptools-vtags" ,python-setuptools-vtags)
        ("python-rdflib-jsonld" ,python-rdflib-jsonld)
        ("python-mistune" ,python-mistune)))

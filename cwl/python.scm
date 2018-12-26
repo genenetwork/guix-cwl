@@ -46,6 +46,108 @@
   #:use-module (guix build-system trivial)
   #:use-module (srfi srfi-1))
 
+(define-public python-3.6
+  (package (inherit python-2)
+    (name "python")
+    (version "3.6.5")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://www.python.org/ftp/python/"
+                                  version "/Python-" version ".tar.xz"))
+              (patches (search-patches
+                        "python-fix-tests.patch"
+                        "python-3-fix-tests.patch"
+                        "python-3-deterministic-build-info.patch"
+                        "python-3-search-paths.patch"))
+              (patch-flags '("-p0"))
+              (sha256
+               (base32
+                "19l7inxm056jjw33zz97z0m02hsi7jnnx5kyb76abj5ml4xhad7l"))
+              (snippet
+               '(begin
+                  (for-each delete-file
+                            '("Lib/ctypes/test/test_structures.py" ; fails on aarch64
+                              "Lib/ctypes/test/test_win32.py" ; fails on aarch64
+                              "Lib/test/test_fcntl.py")) ; fails on aarch64
+                  #t))))
+    (arguments
+     (substitute-keyword-arguments (package-arguments python-2)
+       ((#:tests? _) #t)
+       ((#:phases phases)
+        `(modify-phases ,phases
+           (add-after 'unpack 'patch-timestamp-for-pyc-files
+             (lambda _
+               ;; We set DETERMINISTIC_BUILD to only override the mtime when
+               ;; building with Guix, lest we break auto-compilation in
+               ;; environments.
+               (setenv "DETERMINISTIC_BUILD" "1")
+               (substitute* "Lib/py_compile.py"
+                 (("source_stats\\['mtime'\\]")
+                  "(1 if 'DETERMINISTIC_BUILD' in os.environ else source_stats['mtime'])"))
+
+               ;; Use deterministic hashes for strings, bytes, and datetime
+               ;; objects.
+               (setenv "PYTHONHASHSEED" "0")
+
+               ;; Reset mtime when validating bytecode header.
+               (substitute* "Lib/importlib/_bootstrap_external.py"
+                 (("source_mtime = int\\(source_stats\\['mtime'\\]\\)")
+                  "source_mtime = 1"))
+               #t))
+           ;; These tests fail because of our change to the bytecode
+           ;; validation.  They fail because expected exceptions do not get
+           ;; thrown.  This seems to be no problem.
+           (add-after 'unpack 'disable-broken-bytecode-tests
+             (lambda _
+               (substitute* "Lib/test/test_importlib/source/test_file_loader.py"
+                 (("test_bad_marshal")
+                  "disable_test_bad_marshal")
+                 (("test_no_marshal")
+                  "disable_test_no_marshal")
+                 (("test_non_code_marshal")
+                  "disable_test_non_code_marshal"))
+               #t))
+           ;; Unset DETERMINISTIC_BUILD to allow for tests that check that
+           ;; stale pyc files are rebuilt.
+           (add-before 'check 'allow-non-deterministic-compilation
+             (lambda _ (unsetenv "DETERMINISTIC_BUILD") #t))
+           ;; We need to rebuild all pyc files for three different
+           ;; optimization levels to replace all files that were not built
+           ;; deterministically.
+
+           ;; FIXME: Without this phase we have close to 2000 files that
+           ;; differ across different builds of this package.  With this phase
+           ;; there are about 500 files left that differ.
+           (add-after 'install 'rebuild-bytecode
+             (lambda* (#:key outputs #:allow-other-keys)
+               (setenv "DETERMINISTIC_BUILD" "1")
+               (let ((out (assoc-ref outputs "out")))
+                 (for-each
+                  (lambda (opt)
+                    (format #t "Compiling with optimization level: ~a\n"
+                            (if (null? opt) "none" (car opt)))
+                    (for-each (lambda (file)
+                                (apply invoke
+                                       `(,(string-append out "/bin/python3")
+                                         ,@opt
+                                         "-m" "compileall"
+                                         "-f" ; force rebuild
+                                         ;; Don't build lib2to3, because it's Python 2 code.
+                                         ;; Also don't build obviously broken test code.
+                                         "-x" "(lib2to3|test/bad.*)"
+                                         ,file)))
+                              (find-files out "\\.py$")))
+                  (list '() '("-O") '("-OO")))
+                 #t)))))))
+    (native-search-paths
+     (list (search-path-specification
+            (variable "PYTHONPATH")
+            (files (list (string-append "lib/python"
+                                        (version-major+minor version)
+                                        "/site-packages"))))))))
+
+
+
 (define-public python-setuptools-vtags ; use this specific version for CWL to deal with self.vtags
   (package
     (name "python-setuptools-vtags")
@@ -89,6 +191,9 @@ Python 3 support.")
                    license:expat       ; six, appdirs, pyparsing
                    license:asl2.0      ; packaging is dual ASL2/BSD-2
                    license:bsd-2))))
+
+(define-public python2-setuptools-vtags
+  (package-with-python2 python-setuptools-vtags))
 
 
 (define-public python-typing-extensions; guix candidate
@@ -145,7 +250,7 @@ Python 3 support.")
             "0bdw2pbjmpy1l4p6slsjn54bqy6crk5hk4san84xxirgd9w78iql"))))
     (build-system python-build-system)
     (inputs
-      `(("python-setuptools" ,python-setuptools)))
+      `(("python-setuptools-vtags" ,python-setuptools-vtags)))
     (propagated-inputs
      `(("python-rdflib" ,python-rdflib)
        ("python-isodate" ,python-isodate)
@@ -204,7 +309,7 @@ Python 3 support.")
           "0nabn1hzj1880qsp7fkg7923c0xdqk4i35s15asmy2xp604f97lg"))))
   (build-system python-build-system)
   (inputs
-    `(("python-setuptools" ,python-setuptools)))
+    `(("python-setuptools-vtags" ,python-setuptools-vtags)))
   (home-page "http://hadoop.apache.org/avro")
   (synopsis
     "Avro is a serialization and RPC framework.")
@@ -231,7 +336,7 @@ Python 3 support.")
           "0n5ky1b2vw2y0d4xl3qybyp2rk0gq5frjs8nr8ak6mgj2fyb4676"))))
   (build-system python-build-system)
   (inputs
-    `(("python-setuptools" ,python-setuptools)))
+    `(("python-setuptools-vtags" ,python-setuptools-vtags)))
   (home-page
     "https://github.com/chrissimpkins/shellescape")
   (synopsis
@@ -299,93 +404,6 @@ project)")
   (description #f)
   (license #f)))
 
-(define-public python2-pil1 ; guix obsolete
-  (package
-    (name "python2-pil1")
-    (version "1.1.6")
-    (source (origin
-             (method url-fetch)
-             (uri (string-append
-                   "http://files.genenetwork.org/software/contrib/Imaging-"
-                   version "-gn.tar.gz"))
-             (sha256
-              (base32
-               "0jhinbcq2k899c76m1jc5a3z39k6ajghiavpzi6991hbg6xhxdzg"))
-    (modules '((guix build utils)))
-    (snippet
-     ;; Adapt to newer freetype. As the package is unmaintained upstream,
-     ;; there is no use in creating a patch and reporting it.
-     '(substitute* "_imagingft.c"
-                   (("freetype/")
-                    "freetype2/freetype/")))))
-    (build-system python-build-system)
-    (inputs
-      `(("freetype" ,freetype)
-        ("libjpeg" ,libjpeg)
-        ("libtiff" ,libtiff)
-        ("python2-setuptools" ,python2-setuptools)
-        ("zlib" ,zlib)))
-    (arguments
-     ;; Only the fork python-pillow works with Python 3.
-     `(#:python ,python-2
-       #:tests? #f ; no check target
-       #:phases
-         (alist-cons-before
-          'build 'configure
-          ;; According to README and setup.py, manual configuration is
-          ;; the preferred way of "searching" for inputs.
-          ;; lcms is not found, TCL_ROOT refers to the unavailable tkinter.
-          (lambda* (#:key inputs #:allow-other-keys)
-            (let ((jpeg (assoc-ref inputs "libjpeg"))
-                  (zlib (assoc-ref inputs "zlib"))
-                  (tiff (assoc-ref inputs "libtiff"))
-                  (freetype (assoc-ref inputs "freetype")))
-              (substitute* "setup.py"
-                (("JPEG_ROOT = None")
-                 (string-append "JPEG_ROOT = libinclude(\"" jpeg "\")"))
-                (("ZLIB_ROOT = None")
-                 (string-append "ZLIB_ROOT = libinclude(\"" zlib "\")"))
-                (("TIFF_ROOT = None")
-                 (string-append "TIFF_ROOT = libinclude(\"" tiff "\")"))
-                (("FREETYPE_ROOT = None")
-                 (string-append "FREETYPE_ROOT = libinclude(\""
-                                freetype "\")")))))
-          %standard-phases)))
-    (home-page "http://www.pythonware.com/products/pil/")
-    (synopsis "Python Imaging Library")
-    (description "The Python Imaging Library (PIL) adds image processing
-capabilities to the Python interpreter.")
-    (license (license:x11-style
-               "file://README"
-               "See 'README' in the distribution."))))
-
-(define-public python2-piddle-gn ; guix obsolete
-  (package
-    (name "python2-piddle")
-    (version "1.0.15-gn-PIL1")
-    (source (origin
-     (method url-fetch)
-     (uri (string-append
-           "http://files.genenetwork.org/software/contrib/piddle-"
-version ".tgz"))
-     (sha256
-      (base32
-       "1m89xp0d7d5a0nd483qir7zq99ci6wab1r018i698wjdpr8zf86b"))))
-
-    (build-system python-build-system)
-    (native-inputs
-     `(("python2-setuptools" ,python2-setuptools)))
-    (propagated-inputs
-     `(("python2-pil1" ,python2-pil1)))
-    (arguments
-     `(
-       #:python ,python-2
-       #:tests? #f   ; no 'setup.py test' really!
-    ))
-    (home-page #f)
-    (synopsis "Canvas drawing library for python2 (old!)")
-    (description #f)
-    (license #f)))
 
 (define-public python2-parallel ; guix fix number of things
   (package
@@ -405,7 +423,7 @@ version ".tgz"))
 
     (build-system python-build-system)
     ;; (native-inputs
-    ;; `(("python-setuptools" ,python-setuptools)))
+    ;; `(("python-setuptools-vtags" ,python-setuptools-vtags)))
     (arguments
      `(#:python ,python-2
        #:tests? #f
@@ -431,7 +449,7 @@ version ".tgz"))
          "0x1i4j7yni7k4p9kjxs1lgln1psdmyrz65wp2yr35yn292iw2vbg"))))
     (build-system python-build-system)
     (native-inputs
-     `(("python2-setuptools" ,python2-setuptools)))
+     `(("python2-setuptools-vtags" ,python2-setuptools-vtags)))
     (arguments
      `(#:python ,python-2
        #:phases
@@ -579,3 +597,48 @@ the older versions.")
    (description
     "Python bagit.")
    (license license:gpl2)))
+
+(define-public python-cachecontrol ; schema-salad requires a specific version
+  (package
+    (name "python-cachecontrol")
+    (version "0.11.7")
+    (source
+     (origin
+       (method url-fetch)
+       ;; Pypi does not have tests.
+       (uri (string-append
+             "https://github.com/ionrock/cachecontrol/archive/v"
+             version ".tar.gz"))
+       (file-name (string-append name "-" version ".tar.gz"))
+       (sha256
+        (base32
+         "1yfhwihx1b1xjsx0r19va2m0r2s91im03x4d7pwzp87368f2lkkp"))))
+    (build-system python-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (replace 'check
+           (lambda _
+             ;; Drop test that requires internet access.
+             (delete-file "tests/test_regressions.py")
+             (setenv "PYTHONPATH"
+                     (string-append (getcwd) "/build/lib:"
+                                    (getenv "PYTHONPATH")))
+             ; (invoke "py.test" "-vv") requires cherry-py with too many dependencies
+             #t)))))
+    (native-inputs
+     `(("python-pytest" ,python-pytest)
+       ("python-redis" ,python-redis)
+       ("python-webtest" ,python-webtest)
+       ("python-mock" ,python-mock)))
+    (propagated-inputs
+     `(("python-requests" ,python-requests)
+       ("python-lockfile" ,python-lockfile)))
+    (home-page "https://github.com/ionrock/cachecontrol")
+    (synopsis "The httplib2 caching algorithms for use with requests")
+    (description "CacheControl is a port of the caching algorithms in
+@code{httplib2} for use with @code{requests} session objects.")
+    (license license:asl2.0)))
+
+(define-public python2-cachecontrol
+  (package-with-python2 python-cachecontrol))
