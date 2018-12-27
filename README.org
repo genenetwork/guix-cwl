@@ -11,13 +11,14 @@ GNU Guix.
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto; width=100%;
 [[http://biogems.info/cwltool-references.svg]]
 
-Generated with
+This is the runtime graph including a recent version of Python. The
+figure was generated with
 
-: graph --type=references cwltool |dot -Tsvg > cwltool-references.svg
+: guix graph --type=references cwltool |dot -Tsvg > cwltool-references.svg
 
 This package is used in my reproducible [[https://gitlab.com/pjotrp/guix-notes/blob/master/WORKFLOW.org][WORKFLOW]] example.
 
-* How to use
+* Install cwltool
 
 ** With Docker
 
@@ -28,17 +29,34 @@ GNU Guix can create Docker containers. For examples see [[https://gitlab.com/pjo
 The current container was created with
 
 #+BEGIN_SRC sh
-env GUIX_PACKAGE_PATH=../../gnu/channels/guix-cwl/ ./pre-inst-env guix pack -f docker \
-  -S /usr/bin=/bin -S /etc/profile=/etc/profile cwltool
+guix pack -f docker -S /usr/bin=/bin -S /etc/profile=/etc/profile cwltool
+successfully built /gnu/store/mrwfvb02k9xxzmdfnspxbh4mxa9yg5np-docker-pack.tar.gz.drv
+/gnu/store/4al6wg6crp6s3ykkhaz2c5ihrhxm50q3-docker-pack.tar.gz
+
+ls -lh /gnu/store/4al6wg6crp6s3ykkhaz2c5ihrhxm50q3-docker-pack.tar.gz -h
+-r--r--r-- 2 root root 198M Jan  1  1970 /gnu/store/4al6wg6crp6s3ykkhaz2c5ihrhxm50q3-docker-pack.tar.gz
 #+END_SRC
 
-Note the container is small becauase it only includes cwl and its
-dependencies (see above figure).
+The container only includes cwl and its dependencies (see above
+figure)! You may want to add add binutils bash vim to be able to navigate inside
+the container with
 
-You may add binutils bash vim to be able to navigate inside the container.
+: guix pack -f docker -S /usr/bin=/bin -S /etc/profile=/etc/profile \
+:    cwltool binutils bash vim
 
 Load the docker image with
 
+: docker load --input /gnu/store/4al6wg6crp6s3ykkhaz2c5ihrhxm50q3-docker-pack.tar.gz
+: docker images
+: REPOSITORY          TAG                                IMAGE ID            CREATED             SIZE
+: profile             2g9kac4lj9cbfa5yqn687ds0rmmlfpj1   01c69b34c117        49 years ago        645 MB
+
+You can ignore the time stamp. Run cwltool:
+
+: docker run 01c69b34c117 /usr/bin/cwltool
+
+I have made the Docker image available on Dockerhub as
+https://cloud.docker.com/repository/docker/pjotrpublic/cwltool-1.0.20181012180214
 
 ** With GNU Guix channel
 
@@ -121,7 +139,7 @@ renders
 
 : cwltool-1.0.20181012180214
 
-** With GNU Guix GUIX_PACKAGE_PATH
+** With GUIX_PACKAGE_PATH
 
 There is no magic in channels. I.e., you can opt for the GUIX_PACKAGE_PATH from a checked out
 GNU Guix repo. E.g.
