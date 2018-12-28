@@ -1,12 +1,14 @@
+-*- mode: org; coding: utf-8; -*-
+
 #+TITLE: guix-cwl
 #+OPTIONS: toc:nil num:nil
 
-This is a GNU Guix [[https://www.gnu.org/software/guix/manual/en/html_node/Channels.html][channel]] for the Common Workflow Language which
-can be installed on any Linux distribution (Guix is distribution
-agnostic).
+A /reproducible/ from source build of =cwltool=.
 
-We also provide a ready made Docker container so you can run without
-GNU Guix.
+This repository is a GNU Guix [[https://www.gnu.org/software/guix/manual/en/html_node/Channels.html][channel]] for the Common Workflow Language
+which can be installed on any Linux distribution (Guix is distribution
+agnostic). It also provide a ready made Docker container so you can
+run without GNU Guix.
 
 #+ATTR_HTML: :style margin-left: auto; margin-right: auto; width=100%;
 [[http://biogems.info/cwltool-references.svg]]
@@ -18,6 +20,14 @@ figure was generated with
 
 This package is used in my reproducible [[https://gitlab.com/pjotrp/guix-notes/blob/master/WORKFLOW.org][WORKFLOW]] example.
 
+* Table of Contents                                                     :TOC:
+ - [[#install-cwltool][Install cwltool]]
+   - [[#with-docker][With Docker]]
+   - [[#with-gnu-guix-channel][With GNU Guix channel]]
+   - [[#with-guix_package_path][With GUIX_PACKAGE_PATH]]
+ - [[#license][License]]
+ - [[#notice][Notice]]
+
 * Install cwltool
 
 ** With Docker
@@ -28,7 +38,7 @@ GNU Guix can create Docker containers. For examples see [[https://gitlab.com/pjo
 
 The current container was created with
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC bash
 guix pack -f docker -S /usr/bin=/bin -S /etc/profile=/etc/profile cwltool
 successfully built /gnu/store/mrwfvb02k9xxzmdfnspxbh4mxa9yg5np-docker-pack.tar.gz.drv
 /gnu/store/4al6wg6crp6s3ykkhaz2c5ihrhxm50q3-docker-pack.tar.gz
@@ -41,15 +51,19 @@ The container only includes cwl and its dependencies (see above
 figure)! You may want to add add binutils bash vim to be able to navigate inside
 the container with
 
-: guix pack -f docker -S /usr/bin=/bin -S /etc/profile=/etc/profile \
-:    cwltool binutils bash vim
+#+BEGIN_SRC bash
+guix pack -f docker -S /usr/bin=/bin -S /etc/profile=/etc/profile \
+   cwltool binutils bash vim
+#+END_SRC
 
 Load the docker image with
 
-: docker load --input /gnu/store/4al6wg6crp6s3ykkhaz2c5ihrhxm50q3-docker-pack.tar.gz
-: docker images
-: REPOSITORY          TAG                                IMAGE ID            CREATED             SIZE
-: profile             2g9kac4lj9cbfa5yqn687ds0rmmlfpj1   01c69b34c117        49 years ago        645 MB
+#+BEGIN_SRC bash
+docker load --input /gnu/store/4al6wg6crp6s3ykkhaz2c5ihrhxm50q3-docker-pack.tar.gz
+docker images
+REPOSITORY          TAG                                IMAGE ID            CREATED             SIZE
+profile             2g9kac4lj9cbfa5yqn687ds0rmmlfpj1   01c69b34c117        49 years ago        645 MB
+#+END_SRC
 
 You can ignore the time stamp. Run cwltool:
 
@@ -146,12 +160,17 @@ GNU Guix repo. E.g.
 
 : env GUIX_PACKAGE_PATH=../../gnu/channels/guix-cwl/ ./pre-inst-env guix package -i cwltool -p ~/opt/cwl
 
+* License
+
+This channel is published under the GPLv3 in line with other
+[[https://www.gnu.org/software/guix/packages/][GNU Guix package definitions]].
+
 * Notice
 
-This channel exists because not all dependencies are ready to go into
-GNU Guix trunk and both CWL and schema-salad still use the older
-typing_extensions. We ought to make CWL part of GNU Guix proper in
-time.
+This guix-cwl channel exists because not all dependencies are ready to
+go into GNU Guix trunk and both CWL and schema-salad still use the
+older typing_extensions which obsolete with Python 3.7. We ought to
+make CWL part of GNU Guix proper in time.
 
 Enjoy,
 
