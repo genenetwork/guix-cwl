@@ -82,8 +82,9 @@ Resolved 'tests/echo.cwl' to 'file:///app/tests/echo.cwl'
 'echo' not found: [Errno 2] No such file or directory: 'echo': 'echo'
 #+END_SRC
 
-To run the workflow you'll need to add the required tools to the Docker image.
-See the reproducible [[https://gitlab.com/pjotrp/guix-notes/blob/master/WORKFLOW.org][WORKFLOW]] example.
+To run the workflow you'll need to add the required tools to the
+Docker image (in this case the =binutils= package).  See the
+reproducible [[https://gitlab.com/pjotrp/guix-notes/blob/master/WORKFLOW.org][WORKFLOW]] for an elaborate example.
 
 ** With GNU Guix channel
 
