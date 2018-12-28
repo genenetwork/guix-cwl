@@ -1,6 +1,5 @@
 # -*- mode: org; coding: utf-8; -*-
 #+TITLE: guix-cwl
-#+OPTIONS: toc:nil num:nil
 
 A /reproducible/ from source build of =cwltool=.
 
@@ -17,7 +16,7 @@ figure was generated with
 
 : guix graph --type=references cwltool |dot -Tsvg > cwltool-references.svg
 
-This package is used in my reproducible [[https://gitlab.com/pjotrp/guix-notes/blob/master/WORKFLOW.org][WORKFLOW]] example.
+This package is used in the reproducible [[https://gitlab.com/pjotrp/guix-notes/blob/master/WORKFLOW.org][WORKFLOW]] example.
 
 * Table of Contents                                                     :TOC:
  - [[#install-cwltool][Install cwltool]]
@@ -68,8 +67,23 @@ You can ignore the time stamp. Run cwltool:
 
 : docker run 01c69b34c117 /usr/bin/cwltool
 
-I have made the Docker image available on Dockerhub as
+The Docker image is available on Dockerhub as
 https://cloud.docker.com/repository/docker/pjotrpublic/cwltool-1.0.20181012180214
+
+Note that a bare image is useless because it does not include any of your workflow tooling. For example
+running a cwltool example will complain about a missing 'echo' command:
+
+#+BEGIN_SRC bash
+docker run -v `pwd`:/app -w /app 01c69b34c117 /usr/bin/cwltool tests/echo.cwl --inp "test"
+/gnu/store/dxr1rfmnq1wkq3fm97bbznnwarndlvrx-cwltool-1.0.20181012180214/bin/.cwltool-real 1.0
+Resolved 'tests/echo.cwl' to 'file:///app/tests/echo.cwl'
+[job echo.cwl] /app/50olq6f5$ echo \
+    test > /app/50olq6f5/out.txt
+'echo' not found: [Errno 2] No such file or directory: 'echo': 'echo'
+#+END_SRC
+
+To run the workflow you'll need to add the required tools to the Docker image.
+See the reproducible [[https://gitlab.com/pjotrp/guix-notes/blob/master/WORKFLOW.org][WORKFLOW]] example.
 
 ** With GNU Guix channel
 
