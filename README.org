@@ -1,5 +1,4 @@
--*- mode: org; coding: utf-8; -*-
-
+# -*- mode: org; coding: utf-8; -*-
 #+TITLE: guix-cwl
 #+OPTIONS: toc:nil num:nil
 
