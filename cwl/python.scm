@@ -599,9 +599,9 @@ the older versions.")
     "Python bagit.")
    (license license:gpl2)))
 
-(define-public python-cachecontrol ; schema-salad requires a specific version
+(define-public python-cachecontrol-0.11.7 ; schema-salad requires a specific version
   (package
-    (name "python-cachecontrol")
+    (name "python-cachecontrol-0.11.7")
     (version "0.11.7")
     (source
      (origin
@@ -641,5 +641,5 @@ the older versions.")
 @code{httplib2} for use with @code{requests} session objects.")
     (license license:asl2.0)))
 
-(define-public python2-cachecontrol
-  (package-with-python2 python-cachecontrol))
+(define-public python2-cachecontrol-0.11.7
+  (package-with-python2 python-cachecontrol-0.11.7))

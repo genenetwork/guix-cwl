@@ -62,7 +62,7 @@
      `(("git" ,git)
        ("node" ,node)
        ("python-bagit" ,python-bagit)
-       ("python-cachecontrol" ,python-cachecontrol) ; requires 0.12
+       ("python-cachecontrol-0.11.7" ,python-cachecontrol-0.11.7) ; requires 0.12
        ("python-arcp" ,python-arcp)
        ("python-setuptools-vtags" ,python-setuptools-vtags)
        ("python-dateutil" ,python-dateutil)
@@ -75,7 +75,7 @@
        ("python-mock" ,python-mock)
        ("python-subprocess32" ,python-subprocess32)
        ("python-ruamel.yaml" ,python-ruamel.yaml)
-       ("python-cachecontrol" ,python-cachecontrol)
+       ("python-cachecontrol-0.11.7" ,python-cachecontrol-0.11.7)
        ("python-lxml" ,python-lxml)
        ("python-mypy-extensions" ,python-mypy-extensions)
        ("python-mistune" ,python-mistune)
@@ -123,7 +123,7 @@
     (build-system python-build-system)
     (arguments `(#:tests? #f)) ;; CWL includes no tests.
     (inputs
-     `(("python-cachecontrol" ,python-cachecontrol) ; requires 0.12
+     `(("python-cachecontrol-0.11.7" ,python-cachecontrol-0.11.7) ; requires 0.12
        ("python-cython" ,python-cython)
        ("python-setuptools-vtags" ,python-setuptools-vtags)
        ("python-rdflib-jsonld" ,python-rdflib-jsonld)
