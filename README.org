@@ -1,6 +1,8 @@
 # -*- mode: org; coding: utf-8; -*-
 #+TITLE: guix-cwl
 
+*NOTICE* the updated version can be found on this channel: http://git.genenetwork.org/guix-bioinformatics/guix-bioinformatics
+
 A /reproducible/ from source build of =cwltool=.
 
 This repository is a GNU Guix [[https://www.gnu.org/software/guix/manual/en/html_node/Channels.html][channel]] for the Common Workflow Language
